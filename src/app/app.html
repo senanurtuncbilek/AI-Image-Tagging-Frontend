@@ -1,33 +1,85 @@
 <div class="container">
   <h1>AI Image Tagger</h1>
 
-  <div class="card" *ngIf="!isLoggedIn">
-    <h3>Yönetici Girişi <hr></h3>
-    <div class="input-group">
-      <input type="text" [(ngModel)]="loginData.username" placeholder="Kullanıcı Adı" class="token-input">
-      <hr>
-      <input type="password" [(ngModel)]="loginData.password" placeholder="Şifre" class="token-input">
-    </div>
+  <!-- LOGIN EKRANI ** eğer kullanıcı giriş yapmamışsa formu göster -->
+  <div class="card" *ngIf="!isLoggedIn"> 
+    <h3>Yönetici Girişi</h3>
     <hr>
-    <button (click)="onLogin()" class="upload-btn">Giriş Yap</button>
+    
+    <!-- Form -->
+    <form (ngSubmit)="onLogin()">
+      <div class="input-group">
+        <input 
+          type="text" 
+          [(ngModel)]="loginData.username" 
+          name="username"
+          placeholder="Kullanıcı Adı" 
+          class="token-input"
+          [disabled]="isLoggingIn"
+          required>
+        
+        <hr>
+        
+        <input 
+          type="password" 
+          [(ngModel)]="loginData.password" 
+          name="password"
+          placeholder="Şifre" 
+          class="token-input"
+          [disabled]="isLoggingIn"
+          required>
+      </div>
+      
+      <hr>
+      
+      <!-- Button type="submit" ve loading state -->
+      <button 
+        type="submit" 
+        class="upload-btn"
+        [disabled]="isLoggingIn">
+        {{ isLoggingIn ? 'Giriş yapılıyor...' : 'Giriş Yap' }}
+      </button>
+    </form>
   </div>
 
+  <!-- ANA PANEL -->
   <div *ngIf="isLoggedIn">
     <div class="card">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <span>Hoş geldin, <strong>{{ loginData.username }}</strong></span>
-        <hr>
-        <button (click)="logout()" class="logout-btn" style="background: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer;">Çıkış Yap</button>
+       
+        <span>Hoş geldin, <strong>{{ currentUser?.username }}</strong></span>
+        
+        <button 
+          (click)="logout()" 
+          class="logout-btn" 
+          style="background: #dc3545; color: white; border: none; padding: 8px 15px; cursor: pointer; border-radius: 4px;">
+          Çıkış Yap
+        </button>
       </div>
       
-      <h3>Görüntü Analizi</h3>
-      <input type="file" (change)="onFileSelected($event)" accept="image/*" class="file-input">
+      <hr>
       
-      <button (click)="onUpload()" [disabled]="!selectedFile" class="upload-btn">
-        Analiz Et
+      <h3>Görüntü Analizi</h3>
+      <input 
+        type="file" 
+        (change)="onFileSelected($event)" 
+        accept="image/*" 
+        class="file-input"
+        [disabled]="isUploading">
+      
+      <button 
+        (click)="onUpload()" 
+        [disabled]="!selectedFile || isUploading" 
+        class="upload-btn">
+        {{ isUploading ? 'Analiz ediliyor...' : 'Analiz Et' }}
       </button>
+     
+      <p *ngIf="selectedFile" style="margin-top: 10px; color: #666;">
+        Seçilen dosya: <strong>{{ selectedFile.name }}</strong>
+      </p>
     </div>
 
+    <!-- SONUÇ EKRANI -->
     <div class="result-box" *ngIf="result">
       <h4>Tespit Edilen Nesneler:</h4>
       <ul>
@@ -35,13 +87,15 @@
           <strong>{{ item.key }}:</strong> {{ item.value }} adet
         </li>
       </ul>
+      
       <hr>
+      
       <p><strong>Keywords:</strong> {{ result.analysis?.keywords?.join(', ') }}</p>
       <p><strong>İşlem Süresi:</strong> {{ result.processing_time_ms }} ms</p>
       
       <details>
-        <summary>Ham Veriyi Gör (JSON)</summary>
-        <pre>{{ result | json }}</pre>
+        <summary style="cursor: pointer; user-select: none;">Ham Veriyi Gör (JSON)</summary>
+        <pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto;">{{ result | json }}</pre>
       </details>
     </div>
   </div>
